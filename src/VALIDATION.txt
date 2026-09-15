@@ -1,0 +1,83 @@
+LocalGuard 1.2.0 — validation performed September 14, 2026
+
+Browsers tested:
+- Google Chrome 152.0.7977.83
+- Microsoft Edge 153.0.4234.32
+
+122 checks passed: 33 baseline functional checks, 22 update/self-test checks,
+2 persistence checks, and 1 live download check per browser, plus 6 focused
+audit tests. Each parameter check also exercised all 22 supported tracking
+parameter names. Baseline regression checks ran with the maintained list
+switched off to isolate the original protections; separate tests exercised
+maintained-list rules and exceptions.
+
+Verified with the extension loaded into actual browsers:
+- Browser accepts 106 built-in rules and 1,108 default combined rules with
+  the bundled EasyPrivacy subset (44,310 domains and 558 exceptions).
+- Third-party tracker matching, subdomains, domain boundaries, and direct visits.
+- Narrow Facebook pixel path matching.
+- All 22 tracking parameter rules and exclusion of POST/API requests.
+- Real navigation reaches an isolated local HTTPS server without tracking tags,
+  preserving ordinary parameters and the destination fragment.
+- Actual tracker request is blocked before reaching the server.
+- Feature toggle restores that request.
+- Site exceptions work, including nested cross-site frames after reload.
+- Resuming the site restores blocking.
+- Optional cookie filtering removes actual outgoing Cookie and incoming
+  Set-Cookie headers, compared with a working unfiltered baseline.
+- Cookie rule is scoped to third-party requests.
+- Fingerprinting domain toggle and global pause work.
+- Actual popup switches and site controls work.
+- Invalid setting updates are rejected.
+- No popup JavaScript errors, no horizontal overflow at its intended width.
+- Setup guide opens correctly.
+- Activity comes from real browser rule-match events; synthetic rule tests
+  do not create fake events. Blocks, cleanup matches, and cookie matches are
+  reported separately.
+- Blocked events include the actual rule, time, initiating hostname, and
+  destination hostname. Popup counts reflect recorded events for that tab.
+- Audit viewer filters events and exports JSON. No URL paths, query values,
+  or cookie contents enter retained records. Activity is absent from persistent
+  local storage.
+- Turning activity recording off clears events while blocking continues.
+- Clearing retained events works. Viewer has no JavaScript errors.
+- Focused tests exercise the 500-event memory bound under load, URL redaction,
+  clearing while an event lookup is pending, exclusion of private-window and
+  tabless events, ignoring site-exception matches, and disabled recording.
+- Paused and enabled settings survive browser restart and reloading the test
+  extension. The automation loader is temporary, so the extension was loaded
+  again into the same isolated profile after each restart.
+
+Network tests used an isolated HTTPS fixture with locally generated test
+certificates and test-only host mappings. No test settings, certificates,
+profiles, or debugging permissions are part of the extension package.
+
+These checks verify the behaviors described above. They do not establish
+comprehensive tracker coverage, fingerprint anonymity, compatibility with
+every website, store approval, or an independent security/privacy audit.
+
+Version 1.2 update and protection-test coverage:
+- Compatible domain-list import and actual browser matching.
+- EasyPrivacy site exception overrides its tracking block.
+- One-click tests report enabled protections, intentionally disabled features,
+  global pause, and a deliberately missing browser rule correctly.
+- Same-content updates preserve rollback history; changed updates install
+  and save the previous snapshot.
+- Download credentials/referrer omission and redirect rejection configured.
+- Network failures, HTML, old versions, unsupported exceptions, excessive
+  size, and unexpected large reductions retain the last working snapshot.
+- Rollback restores previous rules and pauses automatic updates.
+- Maintained-list switch leaves built-in protection available.
+- Real browser alarm callback performs a due automatic update.
+- Update page, rollback controls, and test output exercised in both browsers.
+
+Update success/error fixtures were supplied to the isolated service worker's
+fetch function for deterministic tests; rule installation/matching and alarms
+used real browser APIs. Separate, unmodified live-browser checks successfully
+downloaded EasyPrivacy version 202609142041 from the public distribution server
+in both Chrome and Edge. The bundled snapshot is version 202609142021.
+
+The built-in self-test is a browser-rule simulation, not a network or fingerprint
+anonymity test. Real network/cookie enforcement was separately exercised in the
+local HTTPS regression fixture. The extension still requires unpacked loading
+for its browser feedback and rule-test APIs.

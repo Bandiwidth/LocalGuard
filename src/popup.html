@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LocalGuard</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+  <header><img src="icons/48.png" alt="" width="34" height="34"><div><h1>LocalGuard</h1><p>Your browser. Less tracking.</p></div><span class="local">LOCAL</span></header>
+  <main>
+    <section class="status-card" aria-labelledby="statusTitle">
+      <div class="status-top"><span id="statusTitle">Checking protection…</span><label class="switch"><input id="enabled" type="checkbox" aria-label="Enable protection everywhere" disabled><span></span></label></div>
+      <p id="site">Loading this site…</p>
+      <button id="siteToggle" class="site-button" disabled>Pause on this site</button>
+      <p id="reloadNote" class="reload-note">Reload open pages after changing protection.</p>
+    </section>
+    <section class="activity-summary" aria-label="Actual browser activity">
+      <div><strong id="blockedCount">—</strong><span>blocked in this tab</span></div>
+      <a href="activity.html" target="_blank" rel="noopener">View activity &amp; audit ↗</a>
+      <a href="protection.html" target="_blank" rel="noopener">Tracker updates &amp; protection test ↗</a>
+      <p id="auditNote">Reading browser activity…</p>
+    </section>
+    <div class="section-heading"><h2>Protection settings</h2><span id="coverage"></span></div>
+    <section class="settings">
+      <label class="setting"><span><strong>Block common trackers</strong><small>Ads, analytics, and session recording</small></span><input type="checkbox" id="trackers" disabled></label>
+      <label class="setting"><span><strong>Block known fingerprinting scripts</strong><small>A small domain list; no fingerprint masking</small></span><input type="checkbox" id="fingerprinting" disabled></label>
+      <label class="setting"><span><strong>Clean tracking links</strong><small>Remove common tracking tags on navigation</small></span><input type="checkbox" id="cleanLinks" disabled></label>
+      <label class="setting"><span><strong>Filter third-party cookies</strong><small>Extra protection; may disrupt sign-in or embeds</small></span><input type="checkbox" id="cookieShield" disabled></label>
+    </section>
+    <details id="exceptions"><summary>Paused sites <span id="exceptionCount">0</span></summary><p class="hint">Also applies to subdomains. Reload affected pages after resuming.</p><ul id="exceptionList"></ul></details>
+    <p id="message" role="status" aria-live="polite"></p>
+    <footer><span class="dot"></span>No account. No telemetry. No subscription.<a href="guide.html" target="_blank" rel="noopener">Setup &amp; limits ↗</a></footer>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body></html>

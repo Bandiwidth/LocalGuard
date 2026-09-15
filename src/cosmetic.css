@@ -1,0 +1,9 @@
+/* Generic Cosmetic Filtering to hide trackers and cookie banners */
+
+.ad-banner, .advert, .advertisement, [class^="ad-container"],
+[id^="google_ads"], [id^="taboola"], [id^="outbrain"], [class*="sponsored"],
+.cookie-banner, #cookie-notice, #cookie-consent, [class*="cookie-banner"],
+[class*="cookie-consent"], .cmp-container, #onetrust-consent-sdk,
+.cc-window, .cc-banner {
+  display: none !important;
+}

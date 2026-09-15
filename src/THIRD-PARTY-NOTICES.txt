@@ -1,0 +1,25 @@
+EasyPrivacy
+
+The bundled lists/easyprivacy.txt, imported domain/exception data, and adapted
+browser rules are derived from EasyPrivacy by The EasyList authors:
+https://easylist.to/
+Distribution URL: https://easylist-downloads.adblockplus.org/easyprivacy.txt
+Original source: https://github.com/easylist/easylist
+Licensing notice: https://easylist.to/pages/licence.html
+
+We elect the Creative Commons Attribution-ShareAlike 3.0 Unported license for
+this data and its adaptations. License and legal text:
+https://creativecommons.org/licenses/by-sa/3.0/
+https://creativecommons.org/licenses/by-sa/3.0/legalcode
+
+Changes: LocalGuard imports only unconditional and third-party domain-wide
+blocking filters; those are restricted to third-party non-navigation requests.
+Compatible network exceptions are translated to browser allow rules. Filters
+requiring unsupported blocking syntax are omitted. First-party exceptions
+are unnecessary and omitted. An unsupported third-party exception rejects
+the candidate update. Rules are grouped by destination domains.
+
+EasyPrivacy-derived data remains CC BY-SA 3.0. LocalGuard's original program
+code remains under the MIT license in LICENSE.txt. No endorsement by EasyList
+or its authors is implied. Redistribution of the adapted list data must retain
+attribution and the applicable ShareAlike license.
