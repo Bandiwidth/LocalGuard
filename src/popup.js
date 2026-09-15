@@ -1,6 +1,6 @@
 import {hostnameOf, pausedMatch, TRACKERS, FINGERPRINTERS} from './rules.js';
 const $ = id => document.getElementById(id);
-const keys = ['enabled', 'trackers', 'fingerprinting', 'cleanLinks', 'cookieShield'];
+const keys = ['enabled', 'trackers', 'fingerprinting', 'cleanLinks', 'cookieShield', 'blockMalicious'];
 let currentTab, settings, lists;
 function showMessage(text, error = false) { $('message').textContent = text; $('message').classList.toggle('error', error); }
 function lock() { document.querySelectorAll('input,button').forEach(item => item.disabled = true); }
@@ -15,7 +15,7 @@ function render() {
   for (const key of keys) { $(key).checked = settings[key]; $(key).disabled = false; }
   const host = hostnameOf(currentTab?.url);
   const paused = host && pausedMatch(host, settings.pausedSites);
-  const anyFeature = settings.trackers || settings.fingerprinting || settings.cleanLinks || settings.cookieShield;
+  const anyFeature = settings.trackers || settings.fingerprinting || settings.cleanLinks || settings.cookieShield || settings.blockMalicious;
   const active = settings.enabled && !paused && anyFeature;
   $('statusTitle').textContent = !settings.enabled ? 'Paused everywhere' : !anyFeature ? 'All features are off' : paused ? 'Paused on this site' : host ? 'Protection is on' : 'Ready for websites';
   document.querySelector('.status-card').classList.toggle('paused', !active);

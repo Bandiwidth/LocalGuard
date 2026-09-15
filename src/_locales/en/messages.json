@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "LocalGuard — Private Browsing Tools",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Local tracker blocking, tracking-link cleanup, and optional third-party cookie filtering. No account or telemetry.",
+    "description": "Description of the extension"
+  }
+}

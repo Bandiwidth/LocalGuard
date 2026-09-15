@@ -10,6 +10,40 @@
 <p class="note">Restoring the previous version pauses automatic updates so it is not immediately replaced. Existing protection switches and site exceptions still apply.</p>
 <p id="listMessage" role="status" aria-live="polite"></p><details><summary>Source and integrity details</summary><p id="hash"></p><p id="skipped"></p><p>Data by <a href="https://easylist.to/">The EasyList authors</a>, adapted under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>. A SHA-256 hash identifies the downloaded file; it is not a publisher signature.</p></details>
 </section>
+<section class="panel"><div class="panel-title"><h2>Advanced Malware & Spam list</h2><span id="malwareBadge">Loading…</span></div>
+<p>Dynamically imports malware, phishing, and spam domains from URLhaus and StevenBlack hosts to provide enterprise-grade network protection.</p>
+<div class="metrics"><div><strong id="malwareDomainCount">—</strong><span>Blocked domains</span></div></div>
+<dl><dt>Last update check</dt><dd id="malwareLastCheck">—</dd><dt>Next check</dt><dd id="malwareNextCheck">—</dd></dl>
+<div class="toolbar">
+  <label>Enable protection: 
+    <select id="malwareEnabledMode" disabled>
+      <option value="always">Always On</option>
+      <option value="session">On for this session only</option>
+      <option value="off">Off</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="malwareAutoUpdate" disabled> Check for updates daily</label>
+</div>
+<p class="note">Downloads lists from <code>URLhaus</code> and <code>StevenBlack</code> Github repositories directly. LocalGuard parses and deduplicates them locally to protect your browsing.</p>
+<div class="toolbar"><button id="malwareUpdate" disabled>Check for updates now</button><button id="malwareRollback" disabled>Restore previous version</button></div>
+<p id="malwareMessage" role="status" aria-live="polite"></p><details><summary>Source and integrity details</summary><p id="malwareHash"></p></details>
+</section>
+<section class="panel"><div class="panel-title"><h2>Custom User Rules</h2><span id="customRulesBadge">Active</span></div>
+<p>Block or allow specific domains. These rules apply alongside other LocalGuard protection settings.</p>
+<div class="metrics"><div><strong id="userBlockedCount">0</strong><span>Blocked</span></div><div><strong id="userAllowedCount">0</strong><span>Allowed</span></div></div>
+<div class="toolbar" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+  <div>
+    <label for="blockedDomainsInput" style="display:block; margin-bottom: 0.5rem; font-weight: 500;">Always Block (one domain per line):</label>
+    <textarea id="blockedDomainsInput" rows="4" style="width:100%; box-sizing:border-box;" placeholder="e.g. tracking.example.com"></textarea>
+  </div>
+  <div>
+    <label for="allowedDomainsInput" style="display:block; margin-bottom: 0.5rem; font-weight: 500;">Always Allow (one domain per line):</label>
+    <textarea id="allowedDomainsInput" rows="4" style="width:100%; box-sizing:border-box;" placeholder="e.g. trusted.example.com"></textarea>
+  </div>
+  <div><button id="saveCustomRules">Save Custom Rules</button></div>
+</div>
+<p id="customRulesMessage" role="status" aria-live="polite"></p>
+</section>
 <section class="panel"><h2>One-click protection test</h2><p>Check your browser’s installed rules for tracker blocking, link cleanup, safe form handling, fingerprinting endpoints, and optional cookie filtering.</p><button id="test">Run protection test</button><p id="testStatus" role="status" aria-live="polite">No test run yet.</p><ul id="results"></ul><p class="note">This is a browser-rule simulation. It makes no test network requests, changes no settings or cookies, and does not measure fingerprint anonymity. Features you switched off are marked “Off.” Use Activity to see real browsing events.</p></section>
 <footer><a href="guide.html">Setup, privacy, and limitations ↗</a></footer>
 </main><script type="module" src="protection.js"></script></body></html>

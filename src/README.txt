@@ -1,4 +1,4 @@
-LOCALGUARD 1.2.0 — CHROME & MICROSOFT EDGE
+LOCALGUARD 1.1.0 — CHROME & MICROSOFT EDGE
 
 Open guide.html for the complete setup guide, permissions, and limitations.
 
@@ -17,6 +17,8 @@ To uninstall, use Remove on the browser's Extensions page.
 
 FEATURES
 - A built-in tracker list plus an automatically updated EasyPrivacy subset.
+- Advanced Malware & Spam list dynamically merged from URLhaus and StevenBlack.
+- Custom User Rules (Always Block/Allow specific domains) via the UI.
 - Bundled maintained snapshot: 44,310 domains and 558 website exceptions.
 - Update status, manual checks, and rollback to the previous snapshot.
 - One-click browser-rule test, with disabled features marked Off.
@@ -29,7 +31,7 @@ FEATURES
 - No account, subscription, remote code, telemetry, or persistent browsing logs.
 
 LIMITS
-No Windows
+This personal extension is not a full commercial security suite equivalent. No Windows
 protection, comprehensive fingerprint masking, IP hiding, antivirus, private
 email, or independent security audit. EasyPrivacy coverage is a subset. First-party and
 server-side tracking can still occur. Blocking can break sites; use Pause on

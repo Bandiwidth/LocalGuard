@@ -23,6 +23,9 @@ function persist() {
 
 function describe(id) {
   if (id >= 20000 && id < 21000) return {kind:'blocked',reason:'EasyPrivacy tracker domain',rule:`EasyPrivacy ${listVersion()}`};
+  if (id >= 50000 && id < 59999) return {kind:'blocked',reason:'Malware/Spam domain',rule:`Malware list`};
+  if (id >= 60000 && id < 69999) return {kind:'blocked',reason:'Custom blocked domain',rule:'User Custom Rules'};
+  if (id >= 70000 && id < 79999) return {kind:'allowed',reason:'Custom allowed domain',rule:'User Custom Rules'};
   if (id >= 1 && id <= TRACKERS.length) return {kind: 'blocked', reason: 'Common tracker', rule: TRACKERS[id - 1]};
   if (id === 500 || id === 501) return {kind: 'blocked', reason: 'Facebook tracking pixel', rule: id === 500 ? 'facebook.com/tr' : 'Facebook fbevents.js'};
   if (id >= 1000 && id < 1000 + FINGERPRINTERS.length) return {kind: 'blocked', reason: 'Known fingerprinting endpoint', rule: FINGERPRINTERS[id - 1000]};

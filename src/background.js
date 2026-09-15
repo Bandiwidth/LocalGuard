@@ -1,6 +1,7 @@
 import {DEFAULTS, normalizeSettings, buildRules, hostnameOf, pausedMatch, TRACKERS} from './rules.js';
 import {auditMessage} from './audit.js';
 import {initializeLists, listRules, listStatus, changeLists, updateDue, UPDATE_ALARM} from './lists.js';
+import {initializeMalwareList, malwareRules, malwareStatus, changeMalwareLists, malwareUpdateDue, MALWARE_UPDATE_ALARM} from './malwarelist.js';
 import {runSelfTest} from './selftest.js';
 
 async function applyContentScripts(settings) {
@@ -32,9 +33,16 @@ async function applyContentScripts(settings) {
   }
 }
 
-async function applyRules(settings, proposed) {
+async function applyRules(settings, proposedLists, proposedMalware) {
   const existing = await chrome.declarativeNetRequest.getDynamicRules();
-  await chrome.declarativeNetRequest.updateDynamicRules({removeRuleIds: existing.map(rule => rule.id), addRules: [...buildRules(settings),...listRules(settings,proposed)]});
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: existing.map(rule => rule.id),
+    addRules: [
+      ...buildRules(settings),
+      ...listRules(settings, proposedLists),
+      ...malwareRules(settings, proposedMalware)
+    ]
+  });
   await applyContentScripts(settings);
 }
 
@@ -53,6 +61,7 @@ async function updateBadge(settings) {
 let queue = (async () => {
   await chrome.storage.local.setAccessLevel({accessLevel: 'TRUSTED_CONTEXTS'});
   await initializeLists();
+  await initializeMalwareList();
   const settings = await readSettings();
   await applyRules(settings);
   await updateBadge(settings);
@@ -62,15 +71,16 @@ queue.catch(console.error);
 async function handle(message) {
   if (['auditGet', 'auditClear', 'auditToggle'].includes(message.type)) return auditMessage(message);
   let settings = await readSettings();
-  if(message.type==='listState')return {lists:listStatus()};
-  if(['listUpdate','listRollback','listSet'].includes(message.type))return {lists:await changeLists(message,settings,applyRules)};
-  if(message.type==='selfTest')return {test:await runSelfTest(settings,[...buildRules(settings),...listRules(settings)],listStatus())};
+  if(message.type==='listState')return {lists:listStatus(), malwareLists:malwareStatus()};
+  if(['listUpdate','listRollback','listSet'].includes(message.type))return {lists:await changeLists(message,settings,applyRules), malwareLists:malwareStatus()};
+  if(['malwareUpdate','malwareRollback','malwareSet','malwareSetMode'].includes(message.type))return {lists:listStatus(), malwareLists:await changeMalwareLists(message,settings,applyRules)};
+  if(message.type==='selfTest')return {test:await runSelfTest(settings,[...buildRules(settings),...listRules(settings),...malwareRules(settings)],listStatus(),malwareStatus())};
   if (message.type === 'state') {
     // Repair a failed earlier initialization before reporting protection status.
     const actual = await chrome.declarativeNetRequest.getDynamicRules();
-    const expected = [...buildRules(settings),...listRules(settings)];
+    const expected = [...buildRules(settings),...listRules(settings),...malwareRules(settings)];
     if (JSON.stringify(actual) !== JSON.stringify(expected)) await applyRules(settings);
-    return {settings, ruleCount: expected.length, lists:listStatus()};
+    return {settings, ruleCount: expected.length, lists:listStatus(), malwareLists:malwareStatus()};
   }
   if (message.type === 'set') {
     if (!Object.hasOwn(DEFAULTS, message.key) || message.key === 'pausedSites' || typeof message.value !== 'boolean') throw new Error('Invalid setting.');
@@ -87,6 +97,9 @@ async function handle(message) {
     }
   } else if (message.type === 'removeSite') {
     settings.pausedSites = settings.pausedSites.filter(site => site !== message.host);
+  } else if (message.type === 'setCustomRules') {
+    settings.userBlockedDomains = message.blockedDomains || [];
+    settings.userAllowedDomains = message.allowedDomains || [];
   } else { throw new Error('Unknown action.'); }
 
   settings = normalizeSettings(settings);
@@ -95,7 +108,7 @@ async function handle(message) {
   try { await chrome.storage.local.set({settings}); }
   catch (error) { await applyRules(previous); throw error; }
   await updateBadge(settings);
-  return {settings, ruleCount: buildRules(settings).length+listRules(settings).length, lists:listStatus()};
+  return {settings, ruleCount: buildRules(settings).length+listRules(settings).length+malwareRules(settings).length, lists:listStatus(), malwareLists:malwareStatus()};
 }
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
@@ -107,8 +120,10 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
 });
 
 chrome.alarms.onAlarm.addListener(alarm=>{
-  if(alarm.name!==UPDATE_ALARM)return;
-  queue=queue.catch(()=>{}).then(async()=>{if(updateDue())await handle({type:'listUpdate'});});
+  queue=queue.catch(()=>{}).then(async()=>{
+    if((alarm.name===UPDATE_ALARM || alarm.name===UPDATE_ALARM+'-retry') && updateDue()) await handle({type:'listUpdate'});
+    if((alarm.name===MALWARE_UPDATE_ALARM || alarm.name===MALWARE_UPDATE_ALARM+'-retry') && malwareUpdateDue()) await handle({type:'malwareUpdate'});
+  });
   queue.catch(console.error);
 });
 

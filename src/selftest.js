@@ -1,4 +1,4 @@
-export async function runSelfTest(settings, expectedRules, lists) {
+export async function runSelfTest(settings, expectedRules, lists, malwareLists) {
   const results=[];
   const actual=await chrome.declarativeNetRequest.getDynamicRules();
   const stable=value=>JSON.stringify(value,(_,item)=>item && typeof item==='object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))) : item);
@@ -36,5 +36,6 @@ export async function runSelfTest(settings, expectedRules, lists) {
   results.push({name:'Bounce Tracking Protection', status: (settings.enabled && settings.cleanLinks) ? 'pass' : 'off', detail: 'Monitoring main_frame navigations for tracking redirects.'});
 
   results.push({name:'Maintained tracker list',status:lists.enabled&&settings.enabled&&settings.trackers?(actual.some(rule=>rule.id>=20000&&rule.id<40000)?'pass':'fail'):'off',detail:`EasyPrivacy & CNAMEs (${lists.current.version}); ${lists.current.domains.toLocaleString()} imported domains.`});
+  results.push({name:'Advanced Malware & Spam Protection',status:malwareLists?.enabledMode !== 'off' && settings.enabled && settings.blockMalicious ? (actual.some(rule=>rule.id>=50000&&rule.id<60000)?'pass':'fail') : 'off',detail:`URLhaus & StevenBlack; ${malwareLists?.current?.domains?.toLocaleString() || 0} imported domains.`});
   return {at:Date.now(),results,scope:'Browser-rule simulation only. No test network requests, no cookie changes, and no fingerprint-anonymity test. Use Activity to inspect real browsing events.'};
 }

@@ -1,5 +1,5 @@
 const $=id=>document.getElementById(id);
-let lists,busy=false;
+let lists, malwareLists, settings, busy=false, malwareBusy=false;
 async function api(message){const response=await chrome.runtime.sendMessage(message);if(!response?.ok)throw new Error(response?.error||'Protection service unavailable.');return response;}
 function render(){
   $('domainCount').textContent=lists.current.domains.toLocaleString();$('exceptionCount').textContent=lists.current.exceptions.toLocaleString();
@@ -14,19 +14,91 @@ function render(){
   $('listMessage').classList.toggle('error',Boolean(lists.lastError));
   for(const id of ['listEnabled','autoUpdate','update'])$(id).disabled=busy;
   $('rollback').disabled=busy||!lists.previous;
+
+  if (malwareLists?.current) {
+    $('malwareDomainCount').textContent=malwareLists.current.domains.toLocaleString();
+    $('malwareLastCheck').textContent=malwareLists.lastChecked?new Date(malwareLists.lastChecked).toLocaleString():'Not checked yet';
+    $('malwareNextCheck').textContent=malwareLists.nextCheckAfter?new Date(malwareLists.nextCheckAfter).toLocaleString()+' or next hourly check while the browser is running':'Automatic updates paused';
+    $('malwareHash').textContent='Source SHA-256: '+malwareLists.current.sha256;
+  } else {
+    $('malwareDomainCount').textContent='—';
+    $('malwareLastCheck').textContent='—';
+    $('malwareNextCheck').textContent='—';
+    $('malwareHash').textContent='Not downloaded yet';
+  }
+  
+  if(!malwareBusy){$('malwareEnabledMode').value=malwareLists?.enabledMode || 'off';$('malwareAutoUpdate').checked=malwareLists?.autoUpdate;}
+  $('malwareBadge').textContent=malwareLists?.enabledMode !== 'off' ?'List enabled':'List disabled';
+  $('malwareMessage').textContent=malwareLists?.lastError||(malwareLists?.current ? 'List ready. Blocks connections to known dangerous sites.' : 'List not downloaded yet.');
+  $('malwareMessage').classList.toggle('error',Boolean(malwareLists?.lastError));
+  for(const id of ['malwareEnabledMode','malwareAutoUpdate','malwareUpdate'])$(id).disabled=malwareBusy;
+  $('malwareRollback').disabled=malwareBusy||!malwareLists?.previous;
+
+  if (settings) {
+    if (document.activeElement !== $('blockedDomainsInput')) $('blockedDomainsInput').value = (settings.userBlockedDomains || []).join('\n');
+    if (document.activeElement !== $('allowedDomainsInput')) $('allowedDomainsInput').value = (settings.userAllowedDomains || []).join('\n');
+    $('userBlockedCount').textContent = (settings.userBlockedDomains || []).length;
+    $('userAllowedCount').textContent = (settings.userAllowedDomains || []).length;
+  }
 }
 async function change(message){
-  if(busy)return;busy=true;if(lists)render();
+  const isMalware = message.type.startsWith('malware');
+  if(isMalware){
+    if(malwareBusy)return;malwareBusy=true;if(malwareLists)render();
+    $('malwareMessage').textContent=message.type==='malwareUpdate'?'Downloading and parsing lists…':'Applying…';
+  } else {
+    if(busy)return;busy=true;if(lists)render();
+    $('listMessage').textContent=message.type==='listUpdate'?'Downloading and validating list…':'Applying…';
+  }
+  
   let failure;
-  $('listMessage').textContent=message.type==='listUpdate'?'Downloading and validating list…':'Applying…';
-  try{lists=(await api(message)).lists;}
+  try{
+    const res = await api(message);
+    if(res.settings) settings = res.settings;
+    if(res.lists) lists = res.lists;
+    if(res.malwareLists) malwareLists = res.malwareLists;
+  }
   catch(error){failure=error.message;}
-  finally{busy=false;if(lists)render();if(failure){$('listMessage').textContent=failure;$('listMessage').classList.add('error');}}
+  finally{
+    if(isMalware){
+      malwareBusy=false;
+      if(malwareLists)render();
+      if(failure){$('malwareMessage').textContent=failure;$('malwareMessage').classList.add('error');}
+    } else {
+      busy=false;
+      if(lists)render();
+      if(failure){$('listMessage').textContent=failure;$('listMessage').classList.add('error');}
+    }
+  }
 }
 $('listEnabled').addEventListener('change',e=>change({type:'listSet',key:'enabled',value:e.target.checked}));
 $('autoUpdate').addEventListener('change',e=>change({type:'listSet',key:'autoUpdate',value:e.target.checked}));
 $('update').addEventListener('click',()=>change({type:'listUpdate'}));
 $('rollback').addEventListener('click',()=>change({type:'listRollback'}));
+
+$('malwareEnabledMode').addEventListener('change',e=>change({type:'malwareSetMode',value:e.target.value}));
+$('malwareAutoUpdate').addEventListener('change',e=>change({type:'malwareSet',key:'autoUpdate',value:e.target.checked}));
+$('malwareUpdate').addEventListener('click',()=>change({type:'malwareUpdate'}));
+$('malwareRollback').addEventListener('click',()=>change({type:'malwareRollback'}));
+
+$('saveCustomRules').addEventListener('click', async () => {
+  $('saveCustomRules').disabled = true;
+  $('customRulesMessage').textContent = 'Saving...';
+  $('customRulesMessage').classList.remove('error');
+  try {
+    const blocked = $('blockedDomainsInput').value.split('\n').map(l=>l.trim()).filter(l=>l);
+    const allowed = $('allowedDomainsInput').value.split('\n').map(l=>l.trim()).filter(l=>l);
+    await change({type: 'setCustomRules', blockedDomains: blocked, allowedDomains: allowed});
+    $('customRulesMessage').textContent = 'Saved successfully.';
+    setTimeout(() => { if ($('customRulesMessage').textContent === 'Saved successfully.') $('customRulesMessage').textContent = ''; }, 3000);
+  } catch (error) {
+    $('customRulesMessage').textContent = error.message;
+    $('customRulesMessage').classList.add('error');
+  } finally {
+    $('saveCustomRules').disabled = false;
+  }
+});
+
 $('test').addEventListener('click',async()=>{
   $('test').disabled=true;$('testStatus').textContent='Checking the browser’s active rules…';$('results').replaceChildren();
   try{
@@ -41,4 +113,4 @@ $('test').addEventListener('click',async()=>{
   }catch(error){$('testStatus').textContent='Test unavailable: '+error.message;}
   finally{$('test').disabled=false;}
 });
-await change({type:'listState'});
+await change({type:'state'}); // request initial settings and lists state

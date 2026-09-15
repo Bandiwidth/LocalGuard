@@ -32,7 +32,11 @@ export const TRACKING_PARAMS = Object.freeze([
   'gclid', 'dclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid',
   'ttclid', 'twclid', 'li_fat_id', 'mc_cid', 'mc_eid', '_hsenc', '_hsmi'
 ]);
-export const DEFAULTS = Object.freeze({enabled: true, trackers: true, fingerprinting: true, cleanLinks: true, cookieShield: false, pausedSites: []});
+export const DEFAULTS = Object.freeze({
+  enabled: true, trackers: true, fingerprinting: true, cleanLinks: true, 
+  cookieShield: false, blockMalicious: true, pausedSites: [],
+  userBlockedDomains: [], userAllowedDomains: []
+});
 
 export function hostnameOf(input) {
   try {
@@ -43,7 +47,7 @@ export function hostnameOf(input) {
 
 export function normalizeSettings(raw = {}) {
   const result = {...DEFAULTS, pausedSites: []};
-  for (const key of ['enabled', 'trackers', 'fingerprinting', 'cleanLinks', 'cookieShield']) {
+  for (const key of ['enabled', 'trackers', 'fingerprinting', 'cleanLinks', 'cookieShield', 'blockMalicious']) {
     if (typeof raw[key] === 'boolean') result[key] = raw[key];
   }
   if (Array.isArray(raw.pausedSites)) {
@@ -51,6 +55,18 @@ export function normalizeSettings(raw = {}) {
       typeof host === 'string' && host.length <= 253 &&
       /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(host) && !host.includes('..')
     ))].slice(0, 200);
+  }
+  if (Array.isArray(raw.userBlockedDomains)) {
+    result.userBlockedDomains = [...new Set(raw.userBlockedDomains.filter(host =>
+      typeof host === 'string' && host.length <= 253 &&
+      /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(host) && !host.includes('..')
+    ))].slice(0, 1000);
+  }
+  if (Array.isArray(raw.userAllowedDomains)) {
+    result.userAllowedDomains = [...new Set(raw.userAllowedDomains.filter(host =>
+      typeof host === 'string' && host.length <= 253 &&
+      /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(host) && !host.includes('..')
+    ))].slice(0, 1000);
   }
   return result;
 }
@@ -100,5 +116,20 @@ export function buildRules(raw) {
     rules.push({id: 10001 + i * 2, priority: 100, action: {type: 'allow'},
       condition: {initiatorDomains: [domain], excludedResourceTypes: ['main_frame']}});
   });
+  
+  settings.userBlockedDomains.forEach((domain, i) => {
+    rules.push({
+      id: 60000 + i, priority: 50, action: {type: 'block'},
+      condition: {urlFilter: `||${domain}^`, resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'media', 'websocket', 'other']}
+    });
+  });
+
+  settings.userAllowedDomains.forEach((domain, i) => {
+    rules.push({
+      id: 70000 + i, priority: 150, action: {type: 'allow'},
+      condition: {urlFilter: `||${domain}^`, resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'media', 'websocket', 'other']}
+    });
+  });
+
   return rules;
 }

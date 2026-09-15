@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "LocalGuard — Private Browsing Tools",
-  "version": "1.2.0",
-  "description": "Local tracker blocking, tracking-link cleanup, and optional third-party cookie filtering. No account or telemetry.",
+  "name": "__MSG_extensionName__",
+  "version": "1.1.0",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "minimum_chrome_version": "121",
   "permissions": ["storage", "declarativeNetRequest", "declarativeNetRequestFeedback", "activeTab", "alarms", "scripting", "webNavigation"],
   "host_permissions": ["http://*/*", "https://*/*"],
